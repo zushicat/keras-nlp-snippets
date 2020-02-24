@@ -10,5 +10,5 @@ __pycache__/
 # ignore models & stuff
 /models
 
-1_7_seq2seq_chatbot_X.py
+1_7_seq2seq_chatbot.py
 3_1_reasoning_X.py
