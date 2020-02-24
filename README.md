@@ -53,7 +53,7 @@ Suggestions for another attempt:
 - train more epochs
 
 
-#### 2.2 Generating german recipes with script 2)
+#### 2.2.1 Generating german recipes with script 2)
 - use all dessert recipes
 - pretrained word weights (glove)
 - (for starters) only 1 lstm layer with 128 hidden units
