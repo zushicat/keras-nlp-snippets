@@ -14,20 +14,20 @@ from tensorflow.keras.initializers import Constant
 
 
 MODEL_DIR = "models/2_2"
-DATA_DIR = "../../data/recipe_texts/dessert_instructions_short.txt"
+DATA_DIR = "../../data/recipe_texts/dessert_recipe_names.txt"
 EMBEDDING_DIM = 100
-EMBEDDING_FILEPATH = "../../data/glove/german_vectors_{EMBEDDING_DIM}_char.txt"
+EMBEDDING_FILEPATH = f"../../data/glove/german_vectors_{EMBEDDING_DIM}_char.txt"
 
 # ***************************************************
 #
 # ***************************************************
 def get_data():
-    with open("../../data/chefkoch_recipe_texts/dessert_instructions_short.txt") as f:
+    with open(DATA_DIR) as f:
         text = f.read().lower()
 
     text = text.splitlines()
     
-    # text = text[:int(len(text)/5)]  # make very short text for tests
+    text = text[:int(len(text)/5)]  # make very short text for tests
     text = [x for x in text if len(x) > 0]
     text = "\n".join(text)
     
@@ -82,6 +82,7 @@ def text_encoder(text, max_len_sequence, vocab_size, tokenizer, one_hot_enc_x=Fa
     for i in range(0, len(text) - max_len_sequence, 1):
         sequences.append(text[i:i + max_len_sequence])
         next_chars.append(text[i + max_len_sequence])
+    
     print('num sequences:', len(sequences))
 
     # sequences
@@ -167,21 +168,21 @@ def train(model_name="test", epochs=10):
     tokenizer.fit_on_texts(text)
     
     vocab_size = len(tokenizer.word_index)+1
-    # max_len_sequence = int(np.max([len(x) for x in text.split("\n")]))  # ? what is best max len ?
+    # max_len_sequence = max([len(x) for x in text]) # int(np.max([len(x) for x in text.split("\n")]))
     max_len_sequence = 40
-
+   
     # *****
     # create new embedding matrix if change input data
-    # create_word_embedding_glove(tokenizer, vocab_size)
+    create_word_embedding_glove(tokenizer, vocab_size)
     embedding_matrix = load_word_embedding_glove()
     
     # *****
     #
     X, y = text_encoder(text, max_len_sequence, vocab_size, tokenizer, False)
-
+    
     # *****
     #
-    hidden_layer = 128
+    hidden_layer = 64
     dropout = 0.2
     model = build_model(vocab_size, max_len_sequence, embedding_matrix, hidden_layer, dropout)
     model.compile(loss='categorical_crossentropy', optimizer="adam")  # rmsprop
@@ -221,7 +222,7 @@ def generate(model_name="test"):
     max_len_sequence = model.input.shape[1]
     vocab_size = len(tokenizer.word_index)+1
 
-    seeds = ["den zucker einrieseln lassen und"]
+    seeds = ["Litschis mit"]
     for i in range(len(seeds)):
         seed_str = seeds[i]
         generated_str = seed_str
@@ -247,6 +248,6 @@ def generate(model_name="test"):
             
 
 
-# train("dessert_recipes/dessert_100", 100)
-# continue_train("dessert_recipes/dessert_600", "3_layer/dessert_700", 100)
-generate("dessert_recipes/dessert_700")
+# train("dessert_names/dessert_100", 100)
+# continue_train("dessert_names/dessert_100", "dessert_names/dessert_150", 50)
+generate("dessert_names/dessert_100")
