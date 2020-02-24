@@ -208,6 +208,7 @@ def continue_train(old_model_name="test", new_model_name="test", epochs=10):
 
 # *************************************************
 # generate seed and predict / generate text
+# see generating method: https://www.kaggle.com/shivamb/beginners-guide-to-text-generation-using-lstms
 # *************************************************
 def generate(model_name="test"):
     tokenizer, model = load_lstm_model(model_name)
@@ -221,7 +222,6 @@ def generate(model_name="test"):
         x = pad_sequences([x], maxlen=max_len_sequence, padding='pre')
         
         prediction = model.predict_classes(x, verbose=0)
-        print(prediction)
         output_word = ""
         for word, index in tokenizer.word_index.items():
             if index == prediction:
@@ -233,5 +233,5 @@ def generate(model_name="test"):
     print(seed_text)
 
 # train("dessert_recipes/test_100", 100)
-# continue_train("dessert_recipes/dessert_600", "dessert_recipes/dessert_700", 100)
+# continue_train("dessert_recipes/test_100", "dessert_recipes/test_150", 50)
 generate("dessert_recipes/test_100")
