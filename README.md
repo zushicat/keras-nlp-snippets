@@ -15,7 +15,7 @@ Due to copyright reasons there are no links available for crawled recipe texts a
 
 
 ### 0 Text classification
-Classify text.
+Just simple classifiers.
 
 ### 1 Sequence 2 sequence
 Used i.e. for Q&A or translation, basically everything following the schema: something in -> something else out
