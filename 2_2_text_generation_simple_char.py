@@ -1,17 +1,5 @@
 # https://github.com/keras-team/keras/blob/master/examples/lstm_text_generation.py
 # https://machinelearningmastery.com/text-generation-lstm-recurrent-neural-networks-python-keras/
-'''
-#Example script to generate text from Nietzsche's writings.
-
-At least 20 epochs are required before the generated text
-starts sounding coherent.
-
-It is recommended to run this script on GPU, as recurrent
-networks are quite computationally intensive.
-
-If you try this script on new data, make sure your corpus
-has at least ~100k characters. ~1M is better.
-'''
 
 import json
 import numpy as np
@@ -25,6 +13,11 @@ from tensorflow.keras.preprocessing.sequence import pad_sequences
 from tensorflow.keras.initializers import Constant
 
 
+MODEL_DIR = "models/2_2"
+DATA_DIR = "../../data/chefkoch_recipe_texts/dessert_instructions_short.txt"
+EMBEDDING_DIM = 100
+EMBEDDING_FILEPATH = "../../data/glove/german_vectors_{EMBEDDING_DIM}_char.txt"
+
 # ***************************************************
 #
 # ***************************************************
@@ -32,10 +25,9 @@ def get_data():
     with open("../../data/chefkoch_recipe_texts/dessert_instructions_short.txt") as f:
         text = f.read().lower()
 
-    # get rid of all linebreaks and double spaces
     text = text.splitlines()
     
-    # text = text[:int(len(text)/5)]  # make text even shorter
+    # text = text[:int(len(text)/5)]  # make very short text for tests
     text = [x for x in text if len(x) > 0]
     text = "\n".join(text)
     
@@ -43,15 +35,16 @@ def get_data():
 
 
 # ***************************************************
-# create word embedding matrix
+# create char embedding matrix
+# https://minimaxir.com/2017/04/char-embeddings/
+#
+# generally:
 # https://keras.io/examples/pretrained_word_embeddings/
-# Creating embedding matrix takes a while, hence implemented load/save
+# Creating embedding matrix can take a while, hence implemented load/save in test()
 # ***************************************************
 def create_word_embedding_glove(tokenizer, vocab_size):
-    EMBEDDING_DIM = 100
-
     embeddings_index = {}
-    with open(f"../../data/glove/german_vectors_{EMBEDDING_DIM}_char.txt") as f:
+    with open(EMBEDDING_FILEPATH) as f:
         for line in f:
             try:
                 line = line.strip().split(" ")
@@ -71,11 +64,11 @@ def create_word_embedding_glove(tokenizer, vocab_size):
         if embedding_vector is not None:
             embedding_matrix[i] = embedding_vector
     
-    with open(f"models/3_2_text_generation_simple/embedding_matrix.pickle", "wb") as f:
+    with open(f"{MODEL_DIR}/embedding_matrix.pickle", "wb") as f:
         pickle.dump(embedding_matrix, f, protocol=pickle.HIGHEST_PROTOCOL)
 
 def load_word_embedding_glove():
-    with open(f"models/3_2_text_generation_simple/embedding_matrix.pickle", "rb") as f:
+    with open(f"{MODEL_DIR}/embedding_matrix.pickle", "rb") as f:
         embedding_matrix = pickle.load(f)
     return embedding_matrix
 
@@ -142,21 +135,21 @@ def build_model(vocab_size, max_len_sequence, embedding_matrix, hidden_layer, dr
 # ***************************************************
 def save_lstm_model(tokenizer, model, model_name):
     model_config = model.to_json(indent=2)  # serialize model to JSON (str)
-    with open(f"models/3_2_text_generation_simple/{model_name}_config.json", "w") as f:
+    with open(f"{MODEL_DIR}/{model_name}_config.json", "w") as f:
         f.write(model_config)
     
-    model.save_weights(f"models/3_2_text_generation_simple/{model_name}_weights.h5")  # serialize weights to HDF5
+    model.save_weights(f"{MODEL_DIR}/{model_name}_weights.h5")  # serialize weights to HDF5
 
-    with open(f"models/3_2_text_generation_simple/{model_name}_tokenizer.pickle", "wb") as f:
+    with open(f"{MODEL_DIR}/{model_name}_tokenizer.pickle", "wb") as f:
         pickle.dump(tokenizer, f, protocol=pickle.HIGHEST_PROTOCOL)
 
 def load_lstm_model(model_name):
-    with open(f"models/3_2_text_generation_simple/{model_name}_config.json") as f:
+    with open(f"{MODEL_DIR}/{model_name}_config.json") as f:
         model_config = f.read()
     model = model_from_json(model_config)
-    model.load_weights(f"models/3_2_text_generation_simple/{model_name}_weights.h5")
+    model.load_weights(f"{MODEL_DIR}/{model_name}_weights.h5")
 
-    with open(f"models/3_2_text_generation_simple/{model_name}_tokenizer.pickle", "rb") as f:
+    with open(f"{MODEL_DIR}/{model_name}_tokenizer.pickle", "rb") as f:
         tokenizer = pickle.load(f)
     
     return tokenizer, model
@@ -170,7 +163,7 @@ def train(model_name="test", epochs=10):
     
     # *****
     # fit tokenize on all text
-    tokenizer = Tokenizer(char_level=True)
+    tokenizer = Tokenizer(char_level=True)  # see also: https://minimaxir.com/2017/04/char-embeddings/
     tokenizer.fit_on_texts(text)
     
     vocab_size = len(tokenizer.word_index)+1

@@ -14,11 +14,16 @@ from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 from tensorflow.keras.initializers import Constant
 
+
+MODEL_DIR = "models/1_6"
+DATA_DIR = "../../data/chatbot_data/shubham0204/chatbot_nlp"
+EMBEDDING_FILEPATH = "../../data/glove/glove.6B.100d.txt"
+
 # ***************************************************
 # get source and target (questions and answers)
 # ***************************************************
 def get_data():
-    questions, answers = load_data_from_yml("../../data/chatbot_data/karin", "conversations")
+    questions, answers = load_data_from_yml(DATA_DIR, "conversations")
     answers = tag_answers(answers)  # add <BOS> and <EOS> at start/end of answer text line
 
     return questions, answers
@@ -32,7 +37,7 @@ def word_embedding_glove(tokenizer, vocab_size):
     EMBEDDING_DIM = 100
 
     embeddings_index = {}
-    with open("../../data/glove/glove.6B.100d.txt") as f:
+    with open(EMBEDDING_FILEPATH) as f:
         lines = f.read().split("\n")
         for line in lines:
             try:
@@ -219,20 +224,20 @@ def save_lstm_model(tokenizer, model, model_name, max_len_sequence_out):
     model_config["max_len_sequence_out"] = max_len_sequence_out 
     model_config = json.dumps(model_config, indent=2)
     
-    with open(f"models/1_6_seq2seq_chatbot_seq/{model_name}_config.json", "w") as f:
+    with open(f"{MODEL_DIR}/{model_name}_config.json", "w") as f:
         f.write(model_config)
-    model.save_weights(f"models/1_6_seq2seq_chatbot_seq/{model_name}_weights.h5")  # serialize weights to HDF5
+    model.save_weights(f"{MODEL_DIR}/{model_name}_weights.h5")  # serialize weights to HDF5
 
-    with open(f"models/1_6_seq2seq_chatbot_seq/{model_name}_tokenizer.pickle", "wb") as f:
+    with open(f"{MODEL_DIR}/{model_name}_tokenizer.pickle", "wb") as f:
         pickle.dump(tokenizer, f, protocol=pickle.HIGHEST_PROTOCOL)
 
 def load_lstm_model(model_name):
-    with open(f"models/1_6_seq2seq_chatbot_seq/{model_name}_config.json") as f:
+    with open(f"{MODEL_DIR}/{model_name}_config.json") as f:
         model_config = f.read()
     model = model_from_json(model_config)
-    model.load_weights(f"models/1_6_seq2seq_chatbot_seq/{model_name}_weights.h5")
+    model.load_weights(f"{MODEL_DIR}/{model_name}_weights.h5")
 
-    with open(f"models/1_6_seq2seq_chatbot_seq/{model_name}_tokenizer.pickle", "rb") as f:
+    with open(f"{MODEL_DIR}/{model_name}_tokenizer.pickle", "rb") as f:
         tokenizer = pickle.load(f)
     
     n_units = None
@@ -372,5 +377,5 @@ def predict(model_name):
         print("---")
 
 
-train(model_name="conversation", epochs=300)
-predict(model_name="conversation")
+train(model_name="test", epochs=300)
+predict(model_name="test")

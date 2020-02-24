@@ -13,6 +13,9 @@ from tensorflow.keras.preprocessing.sequence import pad_sequences
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.models import model_from_json, save_model, load_model
 
+
+MODEL_DIR = "models/1_3"
+
 # ***************************************************
 # get source and target (questions and answers)
 # ***************************************************
@@ -172,20 +175,20 @@ def save_lstm_model(tokenizer, model, model_name, max_len_sequence_out):
     model_config["max_len_sequence_out"] = max_len_sequence_out 
     model_config = json.dumps(model_config, indent=2)
     
-    with open(f"models/chatbot_seq2seq_simple_text_seq/{model_name}_config.json", "w") as f:
+    with open(f"{MODEL_DIR}/{model_name}_config.json", "w") as f:
         f.write(model_config)
-    model.save_weights(f"models/chatbot_seq2seq_simple_text_seq/{model_name}_weights.h5")  # serialize weights to HDF5
+    model.save_weights(f"{MODEL_DIR}/{model_name}_weights.h5")  # serialize weights to HDF5
 
-    with open(f"models/chatbot_seq2seq_simple_text_seq/{model_name}_tokenizer.pickle", "wb") as f:
+    with open(f"{MODEL_DIR}/{model_name}_tokenizer.pickle", "wb") as f:
         pickle.dump(tokenizer, f, protocol=pickle.HIGHEST_PROTOCOL)
 
 def load_lstm_model(model_name):
-    with open(f"models/chatbot_seq2seq_simple_text_seq/{model_name}_config.json") as f:
+    with open(f"{MODEL_DIR}/{model_name}_config.json") as f:
         model_config = f.read()
     model = model_from_json(model_config)
-    model.load_weights(f"models/chatbot_seq2seq_simple_text_seq/{model_name}_weights.h5")
+    model.load_weights(f"{MODEL_DIR}/{model_name}_weights.h5")
 
-    with open(f"models/chatbot_seq2seq_simple_text_seq/{model_name}_tokenizer.pickle", "rb") as f:
+    with open(f"{MODEL_DIR}/{model_name}_tokenizer.pickle", "rb") as f:
         tokenizer = pickle.load(f)
     
     n_units = None
@@ -330,5 +333,5 @@ def predict(model_name):
         print("---")
 
 
-# train(model_name="test", epochs=200)
+train(model_name="test", epochs=200)
 predict(model_name="test")

@@ -10,6 +10,7 @@ from tensorflow.keras import layers
 from tensorflow.keras.models import model_from_json
 import numpy as np
 
+MODEL_DIR = "models/0_2"
 
 # ***************************************************************
 #
@@ -148,29 +149,29 @@ def plot_history(history):
 # ***************************************************************
 def save_model(category_tags, tokenizer, model, model_name):
     model_config = model.to_json(indent=2)  # serialize model to JSON
-    with open(f"models/text_classification_multiclass_simple/{model_name}_config.json", "w") as f:
+    with open(f"{MODEL_DIR}/{model_name}_config.json", "w") as f:
         f.write(model_config)
-    model.save_weights(f"models/text_classification_multiclass_simple/{model_name}_weights.h5")  # serialize weights to HDF5
+    model.save_weights(f"{MODEL_DIR}/{model_name}_weights.h5")  # serialize weights to HDF5
 
-    with open(f"models/text_classification_multiclass_simple/{model_name}_tokenizer.pickle", "wb") as f:
+    with open(f"{MODEL_DIR}/{model_name}_tokenizer.pickle", "wb") as f:
         pickle.dump(tokenizer, f, protocol=pickle.HIGHEST_PROTOCOL)
     
-    with open(f"models/text_classification_multiclass_simple/{model_name}_category_tags.json", "w") as f:
+    with open(f"{MODEL_DIR}/{model_name}_category_tags.json", "w") as f:
         f.write(json.dumps(category_tags, indent=2, ensure_ascii=False))
 
 def load_model(model_name):
-    with open(f"models/text_classification_multiclass_simple/{model_name}_config.json") as f:
+    with open(f"{MODEL_DIR}/{model_name}_config.json") as f:
         model_config = f.read()
     model = model_from_json(model_config)
-    model.load_weights(f"models/text_classification_multiclass_simple/{model_name}_weights.h5")
+    model.load_weights(f"{MODEL_DIR}/{model_name}_weights.h5")
 
     # get max length of sequences (to pad input sequences in prediction accordingly -> same shape as in model)
     max_sequence_len = json.loads(model_config)["config"]["layers"][0]["config"]["input_length"]  # from embedding layer
 
-    with open(f"models/text_classification_multiclass_simple/{model_name}_tokenizer.pickle", "rb") as f:
+    with open(f"{MODEL_DIR}/{model_name}_tokenizer.pickle", "rb") as f:
         tokenizer = pickle.load(f)
     
-    with open(f"models/text_classification_multiclass_simple/{model_name}_category_tags.json") as f:
+    with open(f"{MODEL_DIR}/{model_name}_category_tags.json") as f:
         category_tags = json.load(f)
     
     return category_tags, tokenizer, model, max_sequence_len
@@ -201,10 +202,10 @@ def predict_text_class(tokenizer, category_tags, model, max_sequence_len):
 text_list, label_list, category_tags = get_super_small_data()
 tokenizer, vocab_size, padded_sequences, max_sequence_len, labels, num_categories = encode_text(text_list, label_list, category_tags)
 model = build_train_model(padded_sequences, labels, vocab_size, max_sequence_len, num_categories)
-save_model(category_tags, tokenizer, model, "text_multiclass_simple")
+save_model(category_tags, tokenizer, model, "test")
 
 # ********
 # load model and predict class of text(s)
 # ********
-# category_tags, tokenizer, model, max_sequence_len = load_model("text_multiclass_simple")
+# category_tags, tokenizer, model, max_sequence_len = load_model("test")
 # predict_text_class(tokenizer, category_tags, model, max_sequence_len)
