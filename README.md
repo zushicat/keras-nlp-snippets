@@ -30,7 +30,7 @@ Text generation
 - shortened input file with 91 dessert recipe texts (from hundreds)
 - pretrained char weights (glove)
 - 3 lstm layers with 128 hidden units
-- 700 epochs (loss ≈ 0.4)
+- trained 700 epochs (loss ≈ 0.4)
 
 Results could be worse but are certainly not satisfying. 
 
@@ -57,4 +57,17 @@ Suggestions for another attempt:
 - use all dessert texts
 - pretrained word weights (glove)
 - (for starters) only 1 lstm layer with 128 hidden units
+- (for starters) trained 100 epocs (loss 0.7841)
 
+
+```
+seed: "vorsichtig in eine schüssel geben"
+
+vorsichtig in eine schüssel geben das mehl mit dem vanillezucker glatt rühren den saft unterrühren den obstsalat in einer pfanne ausbacken auf ein sieb das tiramisu im kühlschrank mindestens sich sie servieren
+```
+
+```
+seed: "den zucker einrieseln lassen und"
+
+den zucker einrieseln lassen und eier zusammen mit der vanille schaumig schlagen und in eine schüssel geben und mit dem servieren steht den kühlschrank stellen die natilla in der mikrowelle auf höchster stufe circa eine minute backen sobald die zitronenverbenenblättchen
+```

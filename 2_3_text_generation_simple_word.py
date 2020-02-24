@@ -214,9 +214,9 @@ def generate(model_name="test"):
     max_len_sequence = model.input.shape[1]
     vocab_size = len(tokenizer.word_index)+1
 
-    seed_text = "parfait"
+    seed_text = "vorsichtig in eine schüssel geben"
 
-    for _ in range(10):
+    for _ in range(1000):
         x = tokenizer.texts_to_sequences([seed_text])[0]
         x = pad_sequences([x], maxlen=max_len_sequence, padding='pre')
         
@@ -232,6 +232,6 @@ def generate(model_name="test"):
         seed_text += f" {output_word}"
     print(seed_text)
 
-train("dessert_recipes/test_100", 100)
+# train("dessert_recipes/test_100", 100)
 # continue_train("dessert_recipes/dessert_600", "dessert_recipes/dessert_700", 100)
-# generate("dessert_recipes/test_100")
+generate("dessert_recipes/test_100")
