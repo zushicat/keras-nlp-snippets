@@ -14,7 +14,7 @@ from tensorflow.keras.initializers import Constant
 
 
 MODEL_DIR = "models/2_2"
-DATA_DIR = "../../data/chefkoch_recipe_texts/dessert_instructions_short.txt"
+DATA_DIR = "../../data/recipe_texts/dessert_instructions_short.txt"
 EMBEDDING_DIM = 100
 EMBEDDING_FILEPATH = "../../data/glove/german_vectors_{EMBEDDING_DIM}_char.txt"
 
@@ -221,7 +221,7 @@ def generate(model_name="test"):
     max_len_sequence = model.input.shape[1]
     vocab_size = len(tokenizer.word_index)+1
 
-    seeds = ["in kleine stücke schneiden und", "vorsichtig in eine schüssel geben", "vorsichtig unterrühren und"]
+    seeds = ["den zucker einrieseln lassen und"]
     for i in range(len(seeds)):
         seed_str = seeds[i]
         generated_str = seed_str
@@ -247,6 +247,6 @@ def generate(model_name="test"):
             
 
 
-# train("3_layer/dessert_100", 100)
-# continue_train("3_layer/dessert_600", "3_layer/dessert_700", 100)
-generate("3_layer/dessert_700")
+# train("dessert_recipes/dessert_100", 100)
+# continue_train("dessert_recipes/dessert_600", "3_layer/dessert_700", 100)
+generate("dessert_recipes/dessert_700")
