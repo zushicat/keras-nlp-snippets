@@ -7,15 +7,5 @@ __pycache__/
 # Visual Studio Code
 .vscode/
 
-# Pipenv
-Pipfile*
-.venv/
-pyproject.lock
-/data/foodgraph
-/data/test_data
-/data/drink_classifier
-/data/drink_nodes_level
-/data/multilabel_classifier
-
 # ignore models
 /models
