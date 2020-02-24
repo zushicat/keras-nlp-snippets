@@ -54,7 +54,7 @@ Suggestions for another attempt:
 
 
 #### 2.2 Generating german recipes with script 2)
-- use all dessert texts
+- use all dessert recipes
 - pretrained word weights (glove)
 - (for starters) only 1 lstm layer with 128 hidden units
 - (for starters) trained 100 epocs (loss 0.7841)
