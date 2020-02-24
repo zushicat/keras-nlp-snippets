@@ -2,7 +2,7 @@
 Short snippets of different nlp AI tasks written with Keras.
 
 
-The scripts gradually get more complex. Links regarding basic ideas, code examples or concepts are left in the comments.
+The scripts gradually get more complex. Links regarding basic ideas, code examples or concepts are left in the comments in each script.
 Use _load_data.py to load yml files (here starting with "conversations").
 
 The data directory is not included. Here are the links
