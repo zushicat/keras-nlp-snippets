@@ -1,17 +1,5 @@
 # https://github.com/keras-team/keras/blob/master/examples/lstm_text_generation.py
 # https://machinelearningmastery.com/text-generation-lstm-recurrent-neural-networks-python-keras/
-'''
-#Example script to generate text from Nietzsche's writings.
-
-At least 20 epochs are required before the generated text
-starts sounding coherent.
-
-It is recommended to run this script on GPU, as recurrent
-networks are quite computationally intensive.
-
-If you try this script on new data, make sure your corpus
-has at least ~100k characters. ~1M is better.
-'''
 
 from __future__ import print_function
 from keras.callbacks import LambdaCallback

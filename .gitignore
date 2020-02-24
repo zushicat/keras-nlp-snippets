@@ -7,5 +7,7 @@ __pycache__/
 # Visual Studio Code
 .vscode/
 
-# ignore models
+# ignore models & stuff
 /models
+
+3_1_reasoning_X.py
