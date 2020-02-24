@@ -23,12 +23,12 @@ Used i.e. for Q&A or translation, basically everything following the schema: som
 ### 2 Text generation
 Text generation
 1) on char level: 2_2_text_generation_simple_char.py
-2) on word level: xxx
+2) on word level: 2_3_text_generation_simple_word.py
 
-#### 2.1.1 Generating german dessert recipes
-with script 1)
+
+#### 2.1.1 Generating german dessert recipes with script 1)
 - shortened input file with 91 dessert recipe texts (from hundreds)
-- pretrained char weights
+- pretrained char weights (glove)
 - 3 lstm layers with 128 hidden units
 - 700 epochs (loss ≈ 0.4)
 
@@ -52,7 +52,9 @@ Suggestions for another attempt:
 - more hidden units for the lstm layers
 - train more epochs
 
-#### 2.1.2 Generating german recipe names
-with script 1)
-Recipe generation (without GPU) was maybe a little too ambitioned, hence the goal is reduced to just create recipe names instead.
+
+#### 2.2 Generating german recipes with script 2)
+- use all dessert texts
+- pretrained word weights (glove)
+- (for starters) only 1 lstm layer with 128 hidden units
 
