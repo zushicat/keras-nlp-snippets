@@ -17,7 +17,7 @@ from tensorflow.keras.initializers import Constant
 
 
 MODEL_DIR = "models/2_3"
-DATA_DIR = "../../data/recipe_texts/dessert_instructions_short.txt"
+DATA_DIR = "../../data/recipe_texts/dessert_instructions.txt"
 EMBEDDING_DIM = 50
 EMBEDDING_FILEPATH = f"../../data/glove/german_vectors_{EMBEDDING_DIM}.txt"
 
@@ -33,10 +33,11 @@ def get_data():
     
     text = text.splitlines()
     
-    # text = text[:int(len(text)/10)]  # make very short text for tests
-    text = [f"{x.strip()} <EOS>" for x in text if len(x) > 0]  # add EOS tag
-    
-    shuffle(text)
+    # shuffle(text)
+    text = [f"{x.strip()} <EOS>" for x in text if len(x) > 0]  # disregard empty lines and add EOS tag
+
+    text = text[:300]  # make shorter text for tests
+    print("----->", len(text))
     
     return text
 
@@ -78,12 +79,11 @@ def load_word_embedding_glove():
 
 
 # ***************************************************
-# for a change let's take the text encoding from
 # https://www.kaggle.com/shivamb/beginners-guide-to-text-generation-using-lstms
 # ***************************************************
 def text_encoder(text, vocab_size, tokenizer):
     def generate_padded_sequences(input_sequences):
-        max_sequence_len = max([len(x) for x in input_sequences])
+        max_sequence_len = max([len(x) for x in input_sequences])  # len of words, not chars
         input_sequences = np.array(pad_sequences(input_sequences, maxlen=max_sequence_len, padding='pre'))
         
         predictors, label = input_sequences[:,:-1],input_sequences[:,-1]  # y is the last token from input
@@ -92,17 +92,34 @@ def text_encoder(text, vocab_size, tokenizer):
         return predictors, label, max_sequence_len
         
     input_sequences = []
-    for line in text:
+    '''
+    from kaggle script:
+    expand sequence until max len line: [a b c d] -> [a b] [a b c] [a b c d]
+    then get X, y: a -> b | a b -> c | a b c -> d
+    '''
+    for line in text[:1]:
         token_list = tokenizer.texts_to_sequences([line])[0]
         for i in range(1, len(token_list)):
             n_gram_sequence = token_list[:i+1]
             input_sequences.append(n_gram_sequence)
+
+    '''
+    To be tested:
+    scan over text with max len: [a b c d e f] -> [a b c] [b c d] [c d e] [d e f]
+    then get X, y: a b -> c | b c -> d | c d -> e | d e -> f
+    '''
+    # max_sequence_len = 20  # len of words, not chars
+    # for line in text:
+    #     token_list = tokenizer.texts_to_sequences([line])[0]
+    #     for i in range(0, len(token_list)):
+    #         n_gram_sequence = token_list[i:i+max_sequence_len]
+    #         input_sequences.append(n_gram_sequence)
     
     return generate_padded_sequences(input_sequences)  # X, y, max_len_seq
 
 
 # *************************************************
-# build very simple model with single LSTM
+# 
 # *************************************************
 def build_model(vocab_size, max_len_sequence, embedding_matrix, hidden_layer, dropout):
     max_len_sequence = max_len_sequence - 1  # last token is y
@@ -113,8 +130,7 @@ def build_model(vocab_size, max_len_sequence, embedding_matrix, hidden_layer, dr
         name = "encoder_embedding",
         input_length = max_len_sequence,
         embeddings_initializer=Constant(embedding_matrix),
-        trainable = True,
-        mask_zero="True"
+        trainable=False  # keep the embeddings fixed or not?
     )
     
     model = Sequential()
@@ -129,6 +145,11 @@ def build_model(vocab_size, max_len_sequence, embedding_matrix, hidden_layer, dr
 
 # ***************************************************
 # save / load model
+# TODO: Don't use save_weights() and load_weights() along with Adam.
+# These functions save only the model weights, but not the optimizer.
+# should be changed to model.save() / load_model()
+# see: https://stackoverflow.com/questions/45424683/how-to-continue-training-for-a-saved-and-then-loaded-keras-model
+#
 # https://machinelearningmastery.com/save-load-keras-deep-learning-models/
 # ***************************************************
 def save_lstm_model(tokenizer, model, model_name):
@@ -168,7 +189,7 @@ def train(model_name="test", epochs=10):
     
     # *****
     # create new embedding matrix if change input data
-    create_word_embedding_glove(tokenizer, vocab_size)
+    # create_word_embedding_glove(tokenizer, vocab_size)  # takes a while, hence create once on given input
     embedding_matrix = load_word_embedding_glove()
     
     # *****
@@ -178,9 +199,9 @@ def train(model_name="test", epochs=10):
     # *****
     #
     hidden_layer = 128
-    dropout = 0.2
+    dropout = 0.1
     model = build_model(vocab_size, max_len_sequence, embedding_matrix, hidden_layer, dropout)
-    model.compile(loss='categorical_crossentropy', optimizer="adam")
+    model.compile(loss='categorical_crossentropy', optimizer="rmsprop")
     model.fit(X, y, batch_size=128, epochs=epochs)
 
     save_lstm_model(tokenizer, model, model_name)
@@ -200,8 +221,9 @@ def continue_train(old_model_name="test", new_model_name="test", epochs=10):
     X, y, _ = text_encoder(text, vocab_size, tokenizer)
 
     # *****
-    #
-    model.compile(loss='categorical_crossentropy', optimizer="adam")
+    # ! save/load weights/config not working with adam ! (use save/load instead)
+    # (These functions save only the model weights, but not the optimizer.)
+    model.compile(loss='categorical_crossentropy', optimizer="rmsprop")
     model.fit(X, y, batch_size=128, epochs=epochs)
 
     save_lstm_model(tokenizer, model, new_model_name)
@@ -214,12 +236,12 @@ def generate(model_name="test"):
     tokenizer, model = load_lstm_model(model_name)
     max_len_sequence = model.input.shape[1]
     vocab_size = len(tokenizer.word_index)+1
-
+    
     seed_text = "vorsichtig in eine schüssel geben"
 
     for _ in range(1000):
         x = tokenizer.texts_to_sequences([seed_text])[0]
-        x = pad_sequences([x], maxlen=max_len_sequence, padding='pre')
+        x = pad_sequences([x], maxlen=max_len_sequence)
         
         prediction = model.predict_classes(x, verbose=0)
         output_word = ""
@@ -232,6 +254,6 @@ def generate(model_name="test"):
         seed_text += f" {output_word}"
     print(seed_text)
 
-# train("dessert_recipes/test_100", 100)
-# continue_train("dessert_recipes/test_100", "dessert_recipes/test_150", 50)
-generate("dessert_recipes/test_100")
+# train("dessert_recipes_2/test_400", 400)
+# continue_train("dessert_recipes_2/test_400", "dessert_recipes_2/test_700", 300)
+generate("dessert_recipes_2/test_700")
