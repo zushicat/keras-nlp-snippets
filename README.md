@@ -21,53 +21,6 @@ Just simple classifiers.
 Used i.e. for Q&A or translation, basically everything following the schema: something in -> something else out
 
 ### 2 Text generation
-Text generation
+Text generation based on recipes separated by linebreaks
 1) on char level: 2_2_text_generation_simple_char.py
 2) on word level: 2_3_text_generation_simple_word.py
-
-
-#### 2.1.1 Generating german dessert recipes with script 1)
-- shortened input file with 91 dessert recipe texts (from hundreds)
-- pretrained char weights (glove)
-- 3 lstm layers with 128 hidden units
-- trained 700 epochs (loss ≈ 0.4)
-
-Results could be worse but are certainly not satisfying. 
-
-Examples:
-```
-seed: "vorsichtig in eine schüssel geben"
-
-vorsichtig in eine schüssel geben. auf dem salz steif schlagen, dann alles in kleine schälchen geben. mit zimtzucker bestreuen. die masse in portionsweise vierteln, das fruchtfleisch heraus belieben mit vanillezucker glatt rühren und die mascarponecreme unterrühren und mit einem kräcken mit dem vanillezucker verrühren und kalt stellen. die mandeln in einer pfanne rett mit dem zucker und die frucht darunter ziehen. eine teller glatt streichen. dann die früchte zusammen mit den saft mit dem saft der früchte zu einer schüssel geben und mit den johandisbee zund. stamit leicht ziehen lassen. die apfelkücherl ein gestellt wasser und den zucker und die pfanne erhitzen, den teig nehmen. zum schluss das fruchtfleisch mit einem schneebesen und die kokosmilch und dem saft vermischen, unterheben.
-```
-
-```
-seed: "den zucker einrieseln lassen und"
-
-den zucker einrieseln lassen und 2 min. köcheln lassen. die milch und den zucker und scheiben schneiden. die mascarpone mit dem saft der früchte darin bei schwicherpaben, servieren langsam die milch unter den teig ziehen. für das dressing darüber geben und mit einem schälen und dann aus der kokosrüssel servieren.
-```
-
-Suggestions for another attempt:
-- more text input
-- more hidden units for the lstm layers
-- train more epochs
-
-
-#### 2.2.1 Generating german recipes with script 2)
-- use all dessert recipes
-- pretrained word weights (glove)
-- (for starters) only 1 lstm layer with 128 hidden units
-- (for starters) trained 100 epocs (loss 0.7841)
-
-
-```
-seed: "vorsichtig in eine schüssel geben"
-
-vorsichtig in eine schüssel geben das mehl mit dem vanillezucker glatt rühren den saft unterrühren den obstsalat in einer pfanne ausbacken auf ein sieb das tiramisu im kühlschrank mindestens sich sie servieren
-```
-
-```
-seed: "den zucker einrieseln lassen und"
-
-den zucker einrieseln lassen und eier zusammen mit der vanille schaumig schlagen und in eine schüssel geben und mit dem servieren steht den kühlschrank stellen die natilla in der mikrowelle auf höchster stufe circa eine minute backen sobald die zitronenverbenenblättchen
-```
