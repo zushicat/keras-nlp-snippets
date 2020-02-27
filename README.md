@@ -11,6 +11,9 @@ The data directory is not included. Here are the links
 - german_vectors_100.txt: https://deepset.ai/german-word-embeddings (https://devmount.github.io/GermanWordEmbeddings/)
 
 
+To use embedding n char level (i.e. german_vectors_100_char.txt as in 2_2_text_generation_simple_char.py), use utils/glove_char_embeddings.py on your glove embedding file.
+
+
 ### 0 Text classification
 Just simple classifiers.
 
