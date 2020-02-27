@@ -152,11 +152,6 @@ def save_lstm_model(tokenizer, model, model_name):
     should be changed to model.save() / load_model()
     see: https://stackoverflow.com/questions/45424683/how-to-continue-training-for-a-saved-and-then-loaded-keras-model
     '''
-    # model_config = model.to_json(indent=2)  # serialize model to JSON (str)
-    # with open(f"{MODEL_DIR}/{model_name}_config.json", "w") as f:
-    #     f.write(model_config)
-    # model.save_weights(f"{MODEL_DIR}/{model_name}_weights.h5")  # serialize weights to HDF5
-
     model.save(f"{MODEL_DIR}/{model_name}_weights.h5")
 
     with open(f"{MODEL_DIR}/{model_name}_tokenizer.pickle", "wb") as f:
@@ -169,10 +164,6 @@ def load_lstm_model(model_name):
     should be changed to model.save() / load_model()
     see: https://stackoverflow.com/questions/45424683/how-to-continue-training-for-a-saved-and-then-loaded-keras-model
     '''
-    # with open(f"{MODEL_DIR}/{model_name}_config.json") as f:
-    #     model_config = f.read()
-    # model = model_from_json(model_config)
-    # model.load_weights(f"{MODEL_DIR}/{model_name}_weights.h5")
     model = load_model(f"{MODEL_DIR}/{model_name}_weights.h5")
 
     with open(f"{MODEL_DIR}/{model_name}_tokenizer.pickle", "rb") as f:
