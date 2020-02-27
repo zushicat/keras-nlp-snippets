@@ -32,11 +32,9 @@ def get_data():
     text = text.replace("-", " ").replace("&", " und ").replace("(", "").replace(")", "").replace("/", " ")
     
     text = text.splitlines()
-    
-    # shuffle(text)
     text = [f"{x.strip()} <EOS>" for x in text if len(x) > 0]  # disregard empty lines and add EOS tag
-
-    text = text[:300]  # make shorter text for tests
+    text = text[:100]  # make shorter text for tests
+    # shuffle(text)
     print("----->", len(text))
     
     return text
@@ -97,7 +95,7 @@ def text_encoder(text, vocab_size, tokenizer):
     expand sequence until max len line: [a b c d] -> [a b] [a b c] [a b c d]
     then get X, y: a -> b | a b -> c | a b c -> d
     '''
-    for line in text[:1]:
+    for line in text:
         token_list = tokenizer.texts_to_sequences([line])[0]
         for i in range(1, len(token_list)):
             n_gram_sequence = token_list[:i+1]
@@ -145,28 +143,37 @@ def build_model(vocab_size, max_len_sequence, embedding_matrix, hidden_layer, dr
 
 # ***************************************************
 # save / load model
-# TODO: Don't use save_weights() and load_weights() along with Adam.
-# These functions save only the model weights, but not the optimizer.
-# should be changed to model.save() / load_model()
-# see: https://stackoverflow.com/questions/45424683/how-to-continue-training-for-a-saved-and-then-loaded-keras-model
-#
 # https://machinelearningmastery.com/save-load-keras-deep-learning-models/
 # ***************************************************
 def save_lstm_model(tokenizer, model, model_name):
-    model_config = model.to_json(indent=2)  # serialize model to JSON (str)
-    with open(f"{MODEL_DIR}/{model_name}_config.json", "w") as f:
-        f.write(model_config)
-    
-    model.save_weights(f"{MODEL_DIR}/{model_name}_weights.h5")  # serialize weights to HDF5
+    '''
+    Don't use save_weights() and load_weights() along with Adam.
+    These functions save only the model weights, but not the optimizer.
+    should be changed to model.save() / load_model()
+    see: https://stackoverflow.com/questions/45424683/how-to-continue-training-for-a-saved-and-then-loaded-keras-model
+    '''
+    # model_config = model.to_json(indent=2)  # serialize model to JSON (str)
+    # with open(f"{MODEL_DIR}/{model_name}_config.json", "w") as f:
+    #     f.write(model_config)
+    # model.save_weights(f"{MODEL_DIR}/{model_name}_weights.h5")  # serialize weights to HDF5
+
+    model.save(f"{MODEL_DIR}/{model_name}_weights.h5")
 
     with open(f"{MODEL_DIR}/{model_name}_tokenizer.pickle", "wb") as f:
         pickle.dump(tokenizer, f, protocol=pickle.HIGHEST_PROTOCOL)
 
 def load_lstm_model(model_name):
-    with open(f"{MODEL_DIR}/{model_name}_config.json") as f:
-        model_config = f.read()
-    model = model_from_json(model_config)
-    model.load_weights(f"{MODEL_DIR}/{model_name}_weights.h5")
+    '''
+    Don't use save_weights() and load_weights() along with Adam.
+    These functions save only the model weights, but not the optimizer.
+    should be changed to model.save() / load_model()
+    see: https://stackoverflow.com/questions/45424683/how-to-continue-training-for-a-saved-and-then-loaded-keras-model
+    '''
+    # with open(f"{MODEL_DIR}/{model_name}_config.json") as f:
+    #     model_config = f.read()
+    # model = model_from_json(model_config)
+    # model.load_weights(f"{MODEL_DIR}/{model_name}_weights.h5")
+    model = load_model(f"{MODEL_DIR}/{model_name}_weights.h5")
 
     with open(f"{MODEL_DIR}/{model_name}_tokenizer.pickle", "rb") as f:
         tokenizer = pickle.load(f)
@@ -198,11 +205,21 @@ def train(model_name="test", epochs=10):
     
     # *****
     #
-    hidden_layer = 128
-    dropout = 0.1
+    hidden_layer = 64
+    dropout = 0.2
     model = build_model(vocab_size, max_len_sequence, embedding_matrix, hidden_layer, dropout)
-    model.compile(loss='categorical_crossentropy', optimizer="rmsprop")
-    model.fit(X, y, batch_size=128, epochs=epochs)
+    
+    model.compile(loss='categorical_crossentropy', optimizer="adam")
+    
+    # *****
+    # reduces the learning rate once the validation loss hasn't improved for a given number of epochs
+    # https://keras.io/callbacks/#reducelronplateau
+    model.fit(
+        X, 
+        y, 
+        batch_size=128, 
+        epochs=epochs, 
+    )
 
     save_lstm_model(tokenizer, model, model_name)
 
@@ -219,12 +236,13 @@ def continue_train(old_model_name="test", new_model_name="test", epochs=10):
     # *****
     #
     X, y, _ = text_encoder(text, vocab_size, tokenizer)
-
-    # *****
-    # ! save/load weights/config not working with adam ! (use save/load instead)
-    # (These functions save only the model weights, but not the optimizer.)
-    model.compile(loss='categorical_crossentropy', optimizer="rmsprop")
-    model.fit(X, y, batch_size=128, epochs=epochs)
+    
+    model.fit(
+        X, 
+        y, 
+        batch_size=128, 
+        epochs=epochs, 
+    )
 
     save_lstm_model(tokenizer, model, new_model_name)
 
@@ -254,6 +272,6 @@ def generate(model_name="test"):
         seed_text += f" {output_word}"
     print(seed_text)
 
-# train("dessert_recipes_2/test_400", 400)
-# continue_train("dessert_recipes_2/test_400", "dessert_recipes_2/test_700", 300)
-generate("dessert_recipes_2/test_700")
+# train("dessert_recipes_2/test_300", 300)
+# continue_train("dessert_recipes_2/test_300", "dessert_recipes_2/test_500", 200)
+generate("dessert_recipes_2/test_300")
