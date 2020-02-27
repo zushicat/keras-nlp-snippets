@@ -152,7 +152,7 @@ def save_lstm_model(tokenizer, model, model_name):
     should be changed to model.save() / load_model()
     see: https://stackoverflow.com/questions/45424683/how-to-continue-training-for-a-saved-and-then-loaded-keras-model
     '''
-    model.save(f"{MODEL_DIR}/{model_name}_weights.h5")
+    model.save(f"{MODEL_DIR}/{model_name}.h5")
 
     with open(f"{MODEL_DIR}/{model_name}_tokenizer.pickle", "wb") as f:
         pickle.dump(tokenizer, f, protocol=pickle.HIGHEST_PROTOCOL)
@@ -164,7 +164,7 @@ def load_lstm_model(model_name):
     should be changed to model.save() / load_model()
     see: https://stackoverflow.com/questions/45424683/how-to-continue-training-for-a-saved-and-then-loaded-keras-model
     '''
-    model = load_model(f"{MODEL_DIR}/{model_name}_weights.h5")
+    model = load_model(f"{MODEL_DIR}/{model_name}.h5")
 
     with open(f"{MODEL_DIR}/{model_name}_tokenizer.pickle", "rb") as f:
         tokenizer = pickle.load(f)
