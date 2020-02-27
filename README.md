@@ -11,9 +11,6 @@ The data directory is not included. Here are the links
 - german_vectors_100.txt: https://deepset.ai/german-word-embeddings (https://devmount.github.io/GermanWordEmbeddings/)
 
 
-Due to copyright reasons there are no links available for crawled recipe texts and titles.
-
-
 ### 0 Text classification
 Just simple classifiers.
 
