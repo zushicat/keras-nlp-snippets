@@ -1,9 +1,11 @@
 # https://github.com/keras-team/keras/blob/master/examples/lstm_text_generation.py
 # https://machinelearningmastery.com/text-generation-lstm-recurrent-neural-networks-python-keras/
+# generally: https://minimaxir.com/2018/05/text-neural-networks/
 
 import json
 import numpy as np
 import pickle
+from random import shuffle
 
 from tensorflow.keras.utils import to_categorical
 from tensorflow.keras.models import Model, Sequential, model_from_json, save_model, load_model
@@ -11,10 +13,11 @@ from tensorflow.keras.layers import Dense, Dropout, Embedding, LSTM
 from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 from tensorflow.keras.initializers import Constant
+from tensorflow.keras.optimizers import RMSprop
 
 
 MODEL_DIR = "models/2_2"
-DATA_DIR = "../../data/recipe_texts/dessert_recipe_names.txt"
+DATA_DIR = "../../data/recipe_texts/dessert_instructions_short.txt"
 EMBEDDING_DIM = 100
 EMBEDDING_FILEPATH = f"../../data/glove/german_vectors_{EMBEDDING_DIM}_char.txt"
 
@@ -27,9 +30,15 @@ def get_data():
 
     text = text.splitlines()
     
-    text = text[:int(len(text)/5)]  # make very short text for tests
+    # text = text[:int(len(text)/5)]  # make very short text for tests
     text = [x for x in text if len(x) > 0]
+    shuffle(text)
+
     text = "\n".join(text)
+    try:
+        text = text[:10000]  # restrict to 10000 words
+    except:
+        pass
     
     return text
 
@@ -79,6 +88,9 @@ def load_word_embedding_glove():
 def text_encoder(text, max_len_sequence, vocab_size, tokenizer, one_hot_enc_x=False):
     sequences = []  # seqence in -> X
     next_chars = []  # sequence out -> y
+    '''
+    scan over text with step 1
+    '''
     for i in range(0, len(text) - max_len_sequence, 1):
         sequences.append(text[i:i + max_len_sequence])
         next_chars.append(text[i + max_len_sequence])
@@ -104,7 +116,7 @@ def text_encoder(text, max_len_sequence, vocab_size, tokenizer, one_hot_enc_x=Fa
 
 
 # *************************************************
-# build very simple model with single LSTM
+# build very simple model
 # *************************************************
 def build_model(vocab_size, max_len_sequence, embedding_matrix, hidden_layer, dropout):
     encoder_embedding_layer = Embedding(
@@ -119,11 +131,7 @@ def build_model(vocab_size, max_len_sequence, embedding_matrix, hidden_layer, dr
     
     model = Sequential()
     model.add(encoder_embedding_layer)
-    model.add(LSTM(hidden_layer, input_shape=(max_len_sequence, vocab_size), return_sequences=True))
-    model.add(Dropout(dropout))
-    model.add(LSTM(hidden_layer, return_sequences=True))
-    model.add(Dropout(dropout))
-    model.add(LSTM(hidden_layer))
+    model.add(LSTM(hidden_layer, input_shape=(max_len_sequence, vocab_size)))
     model.add(Dropout(dropout))
     model.add(Dense(vocab_size, activation='softmax'))
     
@@ -135,20 +143,25 @@ def build_model(vocab_size, max_len_sequence, embedding_matrix, hidden_layer, dr
 # https://machinelearningmastery.com/save-load-keras-deep-learning-models/
 # ***************************************************
 def save_lstm_model(tokenizer, model, model_name):
-    model_config = model.to_json(indent=2)  # serialize model to JSON (str)
-    with open(f"{MODEL_DIR}/{model_name}_config.json", "w") as f:
-        f.write(model_config)
-    
-    model.save_weights(f"{MODEL_DIR}/{model_name}_weights.h5")  # serialize weights to HDF5
+    '''
+    Don't use save_weights() and load_weights() along with Adam.
+    These functions save only the model weights, but not the optimizer.
+    should be changed to model.save() / load_model()
+    see: https://stackoverflow.com/questions/45424683/how-to-continue-training-for-a-saved-and-then-loaded-keras-model
+    '''
+    model.save(f"{MODEL_DIR}/{model_name}.h5")
 
     with open(f"{MODEL_DIR}/{model_name}_tokenizer.pickle", "wb") as f:
         pickle.dump(tokenizer, f, protocol=pickle.HIGHEST_PROTOCOL)
 
 def load_lstm_model(model_name):
-    with open(f"{MODEL_DIR}/{model_name}_config.json") as f:
-        model_config = f.read()
-    model = model_from_json(model_config)
-    model.load_weights(f"{MODEL_DIR}/{model_name}_weights.h5")
+    '''
+    Don't use save_weights() and load_weights() along with Adam.
+    These functions save only the model weights, but not the optimizer.
+    should be changed to model.save() / load_model()
+    see: https://stackoverflow.com/questions/45424683/how-to-continue-training-for-a-saved-and-then-loaded-keras-model
+    '''
+    model = load_model(f"{MODEL_DIR}/{model_name}.h5")
 
     with open(f"{MODEL_DIR}/{model_name}_tokenizer.pickle", "rb") as f:
         tokenizer = pickle.load(f)
@@ -168,7 +181,6 @@ def train(model_name="test", epochs=10):
     tokenizer.fit_on_texts(text)
     
     vocab_size = len(tokenizer.word_index)+1
-    # max_len_sequence = max([len(x) for x in text]) # int(np.max([len(x) for x in text.split("\n")]))
     max_len_sequence = 40
    
     # *****
@@ -182,10 +194,11 @@ def train(model_name="test", epochs=10):
     
     # *****
     #
-    hidden_layer = 64
+    hidden_layer = 128
     dropout = 0.2
     model = build_model(vocab_size, max_len_sequence, embedding_matrix, hidden_layer, dropout)
-    model.compile(loss='categorical_crossentropy', optimizer="adam")  # rmsprop
+
+    model.compile(loss='categorical_crossentropy', optimizer="adam")
     model.fit(X, y, batch_size=128, epochs=epochs)
 
     save_lstm_model(tokenizer, model, model_name)
@@ -206,7 +219,6 @@ def continue_train(old_model_name="test", new_model_name="test", epochs=10):
 
     # *****
     #
-    model.compile(loss='categorical_crossentropy', optimizer="adam")
     model.fit(X, y, batch_size=128, epochs=epochs)
 
     save_lstm_model(tokenizer, model, new_model_name)
@@ -217,12 +229,11 @@ def continue_train(old_model_name="test", new_model_name="test", epochs=10):
 def generate(model_name="test"):
     tokenizer, model = load_lstm_model(model_name)
     # model.summary()
-    # print(tokenizer.word_index)
-
+    
     max_len_sequence = model.input.shape[1]
     vocab_size = len(tokenizer.word_index)+1
 
-    seeds = ["Litschis mit"]
+    seeds = ["vorsichtig in eine schüssel geben"]
     for i in range(len(seeds)):
         seed_str = seeds[i]
         generated_str = seed_str
@@ -230,7 +241,7 @@ def generate(model_name="test"):
         x = tokenizer.texts_to_sequences([seed_str])
         x = pad_sequences(x, maxlen=max_len_sequence)
         
-        for j in range(1000): #(max_len_sequence-1):
+        for j in range(1000):
             prediction = model.predict(x, verbose=0)
             index = np.argmax(prediction)
 
@@ -248,6 +259,6 @@ def generate(model_name="test"):
             
 
 
-# train("dessert_names/dessert_100", 100)
-# continue_train("dessert_names/dessert_100", "dessert_names/dessert_150", 50)
-generate("dessert_names/dessert_100")
+# train("dessert_recipes/dessert_100", 100)
+continue_train("dessert_recipes/dessert_100", "dessert_recipes/dessert_200", 100)
+# generate("dessert_recipes/dessert_200")

@@ -21,6 +21,6 @@ Just simple classifiers.
 Used i.e. for Q&A or translation, basically everything following the schema: something in -> something else out
 
 ### 2 Text generation
-Basic text generation based on recipes separated by linebreaks:
-1) on char level: 2_2_text_generation_simple_char.py
-2) on word level: 2_3_text_generation_simple_word.py
+Basic examples for text generation (trained short on texts separated by linebreaks):
+- char level: 2_2_text_generation_simple_char.py
+- on word level: 2_3_text_generation_simple_word.py
